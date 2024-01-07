@@ -75,7 +75,7 @@ function addItemToStorage(item) {
 function getItemsFromStorage() {
   let itemsFromStorage
 
-  if (localStorage.getItem('items') === null) {
+  if (!localStorage.getItem('items')) {
     itemsFromStorage = []
   } else {
     itemsFromStorage = JSON.parse(localStorage.getItem('items'))
@@ -84,20 +84,43 @@ function getItemsFromStorage() {
   return itemsFromStorage
 }
 
-function removeItem(e) {
+function onClickItem(e) {
   if (e.target.parentElement.classList.contains('remove-item')) {
-    if (window.confirm('Are you sure you want to delete the item?')) {
-      e.target.parentElement.parentElement.remove()
-      checkUI()
-    }
+    removeItem(e.target.parentElement.parentElement)
   }
 }
 
+function removeItem(item) {
+  if (confirm('Are you sure you want to delete the item?')) {
+    // Remove item from DOM
+    item.remove()
+
+    // Remove item from localStorage
+    removeItemFromStorage(item.textContent)
+
+    checkUI()
+  }
+}
+
+function removeItemFromStorage(item) {
+  let itemsFromStorage = getItemsFromStorage()
+
+  // Filter out item to be removed
+  itemsFromStorage = itemsFromStorage.filter((i) => i !== item)
+
+  // Reset localStorage
+  localStorage.setItem('items', JSON.stringify(itemsFromStorage))
+}
+
 function clearItems() {
-  if (window.confirm('Are you sure you want to delete all of the items?')) {
+  if (confirm('Are you sure you want to delete all of the items?')) {
     while (itemList.firstChild) {
       itemList.removeChild(itemList.firstChild)
     }
+
+    // Clear localStorage
+    localStorage.removeItem('items')
+
     checkUI()
   }
 }
@@ -133,7 +156,7 @@ function checkUI() {
 function init() {
   // Event Listeners
   itemForm.addEventListener('submit', onAddItemSubmit)
-  itemList.addEventListener('click', removeItem)
+  itemList.addEventListener('click', onClickItem)
   clearBtn.addEventListener('click', clearItems)
   itemFilter.addEventListener('input', filterItems)
   document.addEventListener('DOMContentLoaded', displayItems)
